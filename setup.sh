@@ -141,7 +141,7 @@ OMP_CONFIG_SRC="$SCRIPT_DIR/omp-config"
 
 # Copy config files from repo to ~/.omp/agent/
 if [[ -d "$OMP_CONFIG_SRC" ]]; then
-    for f in config.yml APPEND_SYSTEM.md mcp.json; do
+    for f in config.yml APPEND_SYSTEM.md; do
         src="$OMP_CONFIG_SRC/$f"
         dst="$HOME/.omp/agent/$f"
         if [[ -f "$src" ]]; then
@@ -160,6 +160,51 @@ if [[ -d "$OMP_CONFIG_SRC" ]]; then
             info "  Copied omp-config/$dir/"
         fi
     done
+fi
+
+# Generate mcp.json with real HOME path and optional context7 key
+header "MCP configuration"
+MCP_FILE="$HOME/.omp/agent/mcp.json"
+echo ""
+echo "  Oh My Pi uses MCP servers for context and docs."
+echo "  - context7: documentation lookup (recommended, needs API key)"
+echo "  - context-mode: project context awareness"
+echo ""
+echo -n "  Context7 API key (press Enter to skip): "
+read -r ctx7_key
+echo ""
+
+if [[ -n "$ctx7_key" ]]; then
+    cat > "$MCP_FILE" << MCPEOF
+{
+  "\$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "context7": {
+      "env": {
+        "CONTEXT7_API_KEY": "$ctx7_key"
+      },
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "context-mode": {
+      "command": "$HOME/.omp/plugins/node_modules/.bin/context-mode"
+    }
+  }
+}
+MCPEOF
+    info "  Created mcp.json with context7 + context-mode."
+else
+    cat > "$MCP_FILE" << MCPEOF
+{
+  "\$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "context-mode": {
+      "command": "$HOME/.omp/plugins/node_modules/.bin/context-mode"
+    }
+  }
+}
+MCPEOF
+    info "  Created mcp.json with context-mode only (no context7 key)."
 fi
 
 # -------------------------------------------------------------------------
@@ -303,25 +348,41 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# Vercel CLI skills
+# Extra skills (GitHub-hosted)
 # -------------------------------------------------------------------------
-header "Vercel CLI skills"
-SKILLS_DIR="$HOME/.omp/agent/skills/vercel-cli"
-mkdir -p "$SKILLS_DIR"
+header "Extra skills"
 
-if [[ -f "$SKILLS_DIR/skill.json" ]]; then
-    info "  Vercel CLI skill already installed."
+# vercel-cli-with-tokens (from vercel-labs/agent-skills)
+dir1="$HOME/.omp/agent/skills/vercel-cli-with-tokens"
+mkdir -p "$dir1"
+if [[ -f "$dir1/SKILL.md" ]]; then
+    info "  vercel-cli-with-tokens already installed."
 else
-    info "Downloading Vercel CLI skill..."
-    if curl -fsSL "https://raw.githubusercontent.com/vercel-labs/agent-skills/main/skills/vercel-cli/skill.json" \
-         -o "$SKILLS_DIR/skill.json" 2>/dev/null; then
-        info "  Downloaded vercel-cli skill."
-        curl -fsSL "https://raw.githubusercontent.com/vercel-labs/agent-skills/main/skills/vercel-cli/instructions.md" \
-             -o "$SKILLS_DIR/instructions.md" 2>/dev/null || true
-    else
-        warn "  Could not download Vercel skills (network or URL may differ)."
-        warn "  Alternative: npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-cli"
-    fi
+    info "Downloading vercel-cli-with-tokens..."
+    curl -fsSL "https://raw.githubusercontent.com/vercel-labs/agent-skills/main/skills/vercel-cli-with-tokens/SKILL.md" \
+        -o "$dir1/SKILL.md" 2>/dev/null && info "  Done." || warn "  Download failed."
+fi
+
+# vercel-cli (from vercel/vercel)
+dir2="$HOME/.omp/agent/skills/vercel-cli"
+mkdir -p "$dir2"
+if [[ -f "$dir2/SKILL.md" ]]; then
+    info "  vercel-cli already installed."
+else
+    info "Downloading vercel-cli..."
+    curl -fsSL "https://raw.githubusercontent.com/vercel/vercel/main/skills/vercel-cli/SKILL.md" \
+        -o "$dir2/SKILL.md" 2>/dev/null && info "  Done." || warn "  Download failed."
+fi
+
+# shadcn (UI components)
+dir3="$HOME/.omp/agent/skills/shadcn"
+mkdir -p "$dir3"
+if [[ -f "$dir3/SKILL.md" ]]; then
+    info "  shadcn already installed."
+else
+    info "Downloading shadcn..."
+    curl -fsSL "https://raw.githubusercontent.com/shadcn-ui/ui/main/skills/shadcn/SKILL.md" \
+        -o "$dir3/SKILL.md" 2>/dev/null && info "  Done." || warn "  Download failed."
 fi
 
 # -------------------------------------------------------------------------
