@@ -2,15 +2,16 @@
 
 One-shot setup for a teenage son's hackathon Mac Mini — Oh My Pi, WezTerm, Zed, and a curated vibe-coding environment.
 
-No Nix. No hindsight. No Firebase. Just `setup.sh` and go.
+No Homebrew, no permission headaches. System-wide packages via Nix, per-user tooling via mise.
 
 ## Quick start
 
 ```bash
-bash setup.sh
+nix profile install .#hackathon-packages   # system-wide: wezterm, zed, imagemagick, ffmpeg, gh
+bash setup.sh                                # per-user: mise, OMP, configs, skills
 ```
 
-Follow the prompts. Script installs Homebrew, WezTerm, Zed, mise (with Node/Python/Bun/uv), Oh My Pi, Git/GitHub CLI, ImageMagick, ffmpeg, and Vercel CLI. Copies config files to the right places.
+Follow the prompts. `setup.sh` installs mise (with Node/Python/Bun/uv), Oh My Pi, drops config files for WezTerm/Zed, installs skills, and sets up git. No `sudo` needed beyond the initial Nix profile.
 
 Then:
 
@@ -25,6 +26,7 @@ See [SETUP.md](./SETUP.md) for the day-of cheatsheet.
 | File | What |
 |---|---|
 | `setup.sh` | Idempotent installer |
+| `flake.nix` | Nix flake for system-wide packages (wezterm, zed, imagemagick, ffmpeg, gh) |
 | `SETUP.md` | Day-of cheatsheet for your son |
 | `wezterm/` | Nord-themed WezTerm config |
 | `zed/` | Nord-themed Zed config |
@@ -63,9 +65,11 @@ Two WCAG AA compliant palettes, both in `theme.css`:
 
 Set via `data-palette="bb"` or `data-palette="nord"` on the root element.
 
-## No Nix
+## Approach
 
-Deliberately avoided. Single bash script, no flake, no rebuilds. The tradeoff is worth it for a one-machine, one-day event.
+**Nix** for system-wide packages (WezTerm, Zed, ImageMagick, ffmpeg, gh) — installed once, available to all accounts.
+
+**Mise** for per-user runtimes (Node, Python, Bun, uv, OMP) — each account manages its own versions independently.
 
 ## License
 

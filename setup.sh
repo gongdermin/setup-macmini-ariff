@@ -32,67 +32,74 @@ if ! xcode-select -p &>/dev/null; then
 fi
 info "Xcode CLI tools present."
 
-# Ensure brew is on PATH for this script
-if [[ -x /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [[ -x /usr/local/bin/brew ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-fi
-
 # -------------------------------------------------------------------------
-# Homebrew
+# Nix — system-wide packages (wezterm, zed, imagemagick, ffmpeg, gh)
 # -------------------------------------------------------------------------
-header "Homebrew"
-if ! command -v brew &>/dev/null; then
+header "Nix system packages"
+if ! command -v nix &>/dev/null; then
+    err "Nix is not installed."
+    err "This machine needs Nix for system-wide packages."
     echo ""
-    echo "Homebrew is not installed. Install it? [Y/n]"
-    read -r response
-    response="${response:-Y}"
-    if [[ "$response" =~ ^[Yy] ]]; then
-        info "Installing Homebrew..."
-        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        if [[ $(uname -m) == "arm64" ]]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        else
-            eval "$(/usr/local/bin/brew shellenv)"
-        fi
-        info "Homebrew installed."
-    else
-        warn "Homebrew skipped. Some tools may be unavailable."
-    fi
+    echo "  Install Nix with the Determinate Systems installer:"
+    echo "    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
+    echo ""
+    echo "  Then re-run this script."
+    exit 1
+fi
+info "Nix found: $(nix --version 2>/dev/null || true)"
+
+# Install system packages via nix profile from the flake in this repo
+if [[ -f "$SCRIPT_DIR/flake.nix" ]]; then
+    info "Installing system packages from flake..."
+    # Use --impure because we don't commit flake.lock for per-machine profiles
+    nix profile install "$SCRIPT_DIR#hackathon-packages" --impure 2>&1 | tail -1
+    info "System packages installed."
 else
-    info "Homebrew already installed."
+    warn "flake.nix not found alongside setup.sh — installing packages directly."
+    nix profile install nixpkgs#wezterm nixpkgs#zed-editor nixpkgs#imagemagick nixpkgs#ffmpeg nixpkgs#gh 2>&1 | tail -1
+    info "System packages installed."
 fi
 
-# -------------------------------------------------------------------------
-# Casks (GUI applications)
-# -------------------------------------------------------------------------
-header "Casks"
-for cask in wezterm zed; do
-    if brew list --cask "$cask" &>/dev/null; then
-        info "  $cask already installed."
+# Symlink .app bundles to /Applications for normal macOS launching
+header "Linking GUI apps to /Applications"
+for app in WezTerm Zed; do
+    # Try nix profile location, then standalone store
+    src="$HOME/.nix-profile/Applications/$app.app"
+    if [[ ! -d "$src" ]]; then
+        src=$(find /nix/store -maxdepth 3 -name "$app.app" -type d 2>/dev/null | head -1)
+    fi
+    dst="/Applications/$app.app"
+    if [[ -d "$src" ]] && [[ ! -e "$dst" ]]; then
+        sudo ln -s "$src" "$dst"
+        info "  Linked $dst"
+    elif [[ -d "$src" ]]; then
+        info "  $dst already exists."
     else
-        info "Installing $cask..."
-        brew install --cask "$cask"
+        warn "  $app.app not found — may need to install manually."
     fi
 done
 
 # -------------------------------------------------------------------------
-# Formulae (CLI tools)
+# Mise — standalone install (per-user, not via nix)
 # -------------------------------------------------------------------------
-header "Formulae"
-for formula in git gh imagemagick ffmpeg mise; do
-    if brew list "$formula" &>/dev/null; then
-        info "  $formula already installed."
-    else
-        info "Installing $formula..."
-        brew install "$formula"
-    fi
-done
+header "Mise"
+if ! command -v mise &>/dev/null; then
+    info "Installing mise (per-user)..."
+    curl -fsSL https://mise.run | sh
+    eval "$(~/.local/share/mise/bin/mise activate bash 2>/dev/null)" || true
+    info "mise installed."
+else
+    info "mise already installed: $(mise --version 2>/dev/null || true)"
+fi
 
 # Activate mise for the rest of this script
 if command -v mise &>/dev/null; then
     eval "$(mise activate bash 2>/dev/null)" || true
+fi
+
+if ! command -v mise &>/dev/null; then
+    err "mise not available after install attempt."
+    exit 1
 fi
 
 # -------------------------------------------------------------------------
@@ -100,10 +107,10 @@ fi
 # -------------------------------------------------------------------------
 header "Mise global tools"
 if ! command -v mise &>/dev/null; then
-    err "mise not found on PATH after brew install."
+    err "mise not found on PATH after standalone install."
+    err "Try: eval \"\$(\"$HOME/.local/share/mise/bin/mise\" activate bash)\""
     exit 1
 fi
-
 for entry in "node@lts" "python@3.11" "bun@latest" "uv@latest"; do
     tool_name="${entry%%@*}"
     if mise ls --global 2>/dev/null | grep -qE "^\s*${tool_name}\s"; then

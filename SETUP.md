@@ -7,7 +7,7 @@ Welcome to your first hackathon! This guide is your day-of cheat sheet. Keep it 
 ## Step 1 — Open Terminal and Run Setup
 
 This should already be done by your parent. If not, ask for help — the script sets up
-everything: Homebrew, WezTerm, Zed, Oh My Pi (OMP), and all the tools you will need.
+everything: WezTerm, Zed, Oh My Pi (OMP), and all the tools you will need.
 
 ```bash
 cd ~/Desktop/setup-macmini-ariff   # or wherever the folder is
