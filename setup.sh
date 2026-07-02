@@ -34,50 +34,83 @@ info "Xcode CLI tools present."
 
 # -------------------------------------------------------------------------
 # Nix — system-wide packages (wezterm, zed, imagemagick, ffmpeg, gh)
+#
+# NOTE: Your main account uses Lix. If running setup.sh from the son's
+# account, nix profile install may fail (daemon mismatch). In that case:
+#   1. Run from YOUR account:  nix profile install /path/to/repo#hackathon-packages
+#   2. Then re-run this script from son's account (it will skip install)
 # -------------------------------------------------------------------------
 header "Nix system packages"
-if ! command -v nix &>/dev/null; then
-    err "Nix is not installed."
-    err "This machine needs Nix for system-wide packages."
-    echo ""
-    echo "  Install Nix with the Determinate Systems installer:"
-    echo "    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
-    echo ""
-    echo "  Then re-run this script."
-    exit 1
-fi
-info "Nix found: $(nix --version 2>/dev/null || true)"
 
-# Install system packages via nix profile from the flake in this repo
-if [[ -f "$SCRIPT_DIR/flake.nix" ]]; then
-    info "Installing system packages from flake..."
-    # Use --impure because we don't commit flake.lock for per-machine profiles
-    nix profile install "$SCRIPT_DIR#hackathon-packages" --impure 2>&1 | tail -1
-    info "System packages installed."
+# Detect if nix works (handles both Nix and Lix)
+NIX_OK=false
+if command -v nix &>/dev/null; then
+    NIX_OK=true
+    info "Nix found: $(nix --version 2>/dev/null || true)"
 else
-    warn "flake.nix not found alongside setup.sh — installing packages directly."
-    nix profile install nixpkgs#wezterm nixpkgs#zed-editor nixpkgs#imagemagick nixpkgs#ffmpeg nixpkgs#gh 2>&1 | tail -1
-    info "System packages installed."
+    warn "nix not found on PATH."
+    warn "Install nix on the son's account, or run the setup from your main account."
 fi
-
-# Symlink .app bundles to /Applications for normal macOS launching
+# Attempt nix profile install — may fail on son's account if daemon is Lix-only
+if [[ "$NIX_OK" == true ]]; then
+    # Quick check: can we actually talk to the daemon?
+    if nix store ping &>/dev/null; then
+        if [[ -f "$SCRIPT_DIR/flake.nix" ]]; then
+            info "Installing system packages from flake..."
+            nix profile install "$SCRIPT_DIR#hackathon-packages" 2>&1 | tail -1 || true
+            info "Done."
+        else
+            warn "flake.nix not found alongside setup.sh — installing packages directly."
+            nix profile install nixpkgs#wezterm nixpkgs#zed-editor nixpkgs#imagemagick nixpkgs#ffmpeg nixpkgs#gh 2>&1 | tail -1 || true
+            info "Done."
+        fi
+    else
+        warn "Nix daemon not accessible from this account."
+        warn "  Run from your main account: cd \"$SCRIPT_DIR\" && nix profile install .#hackathon-packages"
+        warn "  Then re-run this script — it will skip to linking existing apps."
+    fi
+fi
 header "Linking GUI apps to /Applications"
 for app in WezTerm Zed; do
-    # Try nix profile location, then standalone store
-    src="$HOME/.nix-profile/Applications/$app.app"
-    if [[ ! -d "$src" ]]; then
-        src=$(find /nix/store -maxdepth 3 -name "$app.app" -type d 2>/dev/null | head -1)
-    fi
+    # Search common locations for .app bundles
+    src=""
+    for candidate in \
+        "$HOME/.nix-profile/Applications/$app.app" \
+        "$HOME/.local/share/nix/Applications/$app.app" \
+        $(find /nix/store -maxdepth 4 -path "*/Applications/$app.app" -type d 2>/dev/null | head -1) \
+        "/Applications/$app.app"; do
+        if [[ -d "$candidate" ]]; then
+            src="$candidate"
+            break
+        fi
+    done
+
     dst="/Applications/$app.app"
-    if [[ -d "$src" ]] && [[ ! -e "$dst" ]]; then
-        sudo ln -s "$src" "$dst"
-        info "  Linked $dst"
+    if [[ "$src" == "$dst" ]]; then
+        info "  $app already in /Applications."
+    elif [[ -d "$src" ]] && [[ ! -e "$dst" ]]; then
+        if sudo ln -s "$src" "$dst" 2>/dev/null; then
+            info "  Linked $app to /Applications."
+        else
+            warn "  Could not symlink $app (need sudo). Run: sudo ln -s \"$src\" /Applications/"
+        fi
     elif [[ -d "$src" ]]; then
         info "  $dst already exists."
     else
-        warn "  $app.app not found — may need to install manually."
+        warn "  $app.app not found anywhere — install it first (see instructions above)."
     fi
 done
+
+if [[ "$NIX_OK" == false ]]; then
+    warn ""
+    warn "  ────────────────────────────────────────────────────"
+    warn "  Nix not available on this account. System packages"
+    warn "  (WezTerm, Zed, imagemagick) were NOT installed."
+    warn ""
+    warn "  Ask parent to run from their account:"
+    warn "    cd \"$SCRIPT_DIR\" && nix profile install .#hackathon-packages"
+    warn "  ────────────────────────────────────────────────────"
+fi
 
 # -------------------------------------------------------------------------
 # Mise — standalone install (per-user, not via nix)
