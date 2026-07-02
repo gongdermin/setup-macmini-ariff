@@ -1,0 +1,72 @@
+# setup-macmini-ariff
+
+One-shot setup for a teenage son's hackathon Mac Mini — Oh My Pi, WezTerm, Zed, and a curated vibe-coding environment.
+
+No Nix. No hindsight. No Firebase. Just `setup.sh` and go.
+
+## Quick start
+
+```bash
+bash setup.sh
+```
+
+Follow the prompts. Script installs Homebrew, WezTerm, Zed, mise (with Node/Python/Bun/uv), Oh My Pi, Git/GitHub CLI, ImageMagick, ffmpeg, and Vercel CLI. Copies config files to the right places.
+
+Then:
+
+```bash
+pi    # launch Oh My Pi
+```
+
+See [SETUP.md](./SETUP.md) for the day-of cheatsheet.
+
+## What's in here
+
+| File | What |
+|---|---|
+| `setup.sh` | Idempotent installer |
+| `SETUP.md` | Day-of cheatsheet for your son |
+| `wezterm/` | Nord-themed WezTerm config |
+| `zed/` | Nord-themed Zed config |
+| `omp-config/` | Oh My Pi agent configuration |
+
+### OMP config
+
+| Path | Purpose |
+|---|---|
+| `config.yml` | Model: deepseek-v4-flash, no memory, yolo mode |
+| `APPEND_SYSTEM.md` | Hackathon system prompt — mise, SQLite, secrets, scope |
+| `mcp.json` | context7 MCP server |
+| `rules/guardrails.md` | Secrets, mise, and scope guardrails |
+| `commands/hk-*.md` | 8 slash commands for the hackathon flow |
+| `templates/` | Project scaffolds — theme.css, tailwind, shadcn, .gitignore, AGENTS.md |
+
+## Slash commands
+
+| Command | What it does |
+|---|---|
+| `/hk-start` | Scaffold a new project |
+| `/hk-stuck` | Debug an error |
+| `/hk-cut` | Trim features for demo deadline |
+| `/hk-push` | Safe commit + push (gitignore check) |
+| `/hk-demo` | Generate README + demo script |
+| `/hk-deploy` | Deploy to Vercel |
+| `/hk-data` | Scaffold SQLite schema + CRUD |
+| `/hk-design` | Generate components with BB Pastel / Nord |
+
+## Color palettes
+
+Two WCAG AA compliant palettes, both in `theme.css`:
+
+**BB Pastel** (default) — school-inspired sage greens, butter golds, peach corals.
+**Nord** (alt) — arctic frost blues, polar nights, snow whites.
+
+Set via `data-palette="bb"` or `data-palette="nord"` on the root element.
+
+## No Nix
+
+Deliberately avoided. Single bash script, no flake, no rebuilds. The tradeoff is worth it for a one-machine, one-day event.
+
+## License
+
+MIT
