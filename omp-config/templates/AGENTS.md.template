@@ -1,0 +1,28 @@
+# Project: {{project_name}}
+
+## Stack
+- Runtime: {{runtime}}  <!-- e.g. Bun, Node, Python -->
+- Framework: {{framework}}  <!-- e.g. React + Vite, plain HTML -->
+- Styling: Tailwind CSS + theme.css
+- Database: SQLite (better-sqlite3 or sqlite3)
+- Hosting: Vercel
+
+## Color Palette
+- Default: BB Pastel — sage greens, butter yellows, peach corals, white space
+- Alt: Nord — arctic blues, cool greys, snow whites
+- Set via `data-palette="bb"` or `data-palette="nord"` on root element
+- Dark mode via `data-theme="dark"`
+- All colors are CSS variables in theme.css. Never hardcode hex.
+
+## Commands
+- Dev: `bun dev` (or npm run dev)
+- Build: `npx vercel build`
+- Deploy: `npx vercel --prod`
+
+## Project Context
+{{project_description}}
+
+## Notes
+- When generating images, use the palette's style description.
+- BB Pastel generate prefix: "soft sage greens, butter yellows, peach tones, clean white space"
+- Nord generate prefix: "arctic blues, cool greys, snow whites"

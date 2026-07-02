@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "context7": {
+      "env": {
+        "CONTEXT7_API_KEY": "<your-context7-key>"
+      },
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "context-mode": {
+      "command": "$HOME/.omp/plugins/node_modules/.bin/context-mode"
+    }
+  }
+}

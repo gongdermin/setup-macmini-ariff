@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.*
+.mise.local.toml
+*.local
+
+# Dependencies
+node_modules/
+.pnpm-store/
+__pycache__/
+*.pyc
+.uv/
+
+# Build output
+build/
+dist/
+.next/
+.vercel/
+
+# IDE
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Runtime
+*.pid
+*.seed

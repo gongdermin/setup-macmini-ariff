@@ -1,0 +1,102 @@
+/* ── Hackathon Design Tokens ────────────────────────────────── */
+/* Two palettes: BB Pastel (school-inspired, default) and Nord  */
+/* WCAG AA compliant across all meaningful text/UI pairs        */
+
+:root,
+[data-palette="bb"] {
+  /* ── BB Pastel Light Mode ─────────────────────────────── */
+  --bg-base:    #F4F9F6;
+  --bg-surface: #E6F0EA;
+  --text:       #1E3A2F;
+  --primary:    #2D6B52;
+  --muted:      #4D7566;
+  --gold:       #F7D97A;
+  --coral:      #F0A099;
+  --accent:     var(--coral);
+  --border:     #CDE0D5;
+  --radius:     0.5rem;
+}
+
+[data-palette="bb"][data-theme="dark"],
+[data-palette="bb"] [data-theme="dark"] {
+  /* ── BB Pastel Dark Mode ──────────────────────────────── */
+  --bg-base:    #1C3329;
+  --bg-surface: #2D4A3E;
+  --text:       #E8F2EE;
+  --primary:    #6DBF9E;
+  --muted:      #7CA090;
+  --gold:       #F7D97A;
+  --coral:      #F0A099;
+  --border:     #3B6652;
+}
+
+[data-palette="nord"] {
+  /* ── Nord Light Mode ──────────────────────────────────── */
+  --bg-base:    #ECEFF4;
+  --bg-surface: #E5E9F0;
+  --text:       #2E3440;
+  --primary:    #4C6D8C;
+  --muted:      #4C566A;
+  --chip:       #88C0D0;
+  --border:     #D8DEE9;
+  --accent:     var(--primary);
+  --radius:     0.5rem;
+}
+
+[data-palette="nord"][data-theme="dark"],
+[data-palette="nord"] [data-theme="dark"] {
+  /* ── Nord Dark Mode ───────────────────────────────────── */
+  --bg-base:    #2E3440;
+  --bg-surface: #3B4252;
+  --text:       #ECEFF4;
+  --primary:    #88C0D0;
+  --muted:      #D8DEE9;
+  --green:      #A3BE8C;
+  --border:     #4C566A;
+}
+
+/* ── Shared defaults ─────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color: var(--text);
+  background-color: var(--bg-base);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.2s;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ── Utility classes ───────────────────────────────────────── */
+
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.radius {
+  border-radius: var(--radius);
+}

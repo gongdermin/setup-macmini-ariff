@@ -1,0 +1,31 @@
+modelRoles:
+  default: opencode-go/deepseek-v4-flash
+  smol: opencode-go/deepseek-v4-flash
+  slow: opencode-go/deepseek-v4-flash
+  plan: opencode-go/deepseek-v4-flash
+  commit: opencode-go/deepseek-v4-flash
+  task: opencode-go/deepseek-v4-flash
+  vision: opencode-go/deepseek-v4-flash
+  designer: opencode-go/deepseek-v4-flash
+memory:
+  backend: off
+plugins:
+  enabled: true
+  autoUpdate: false
+symbolPreset: unicode
+lsp:
+  enabled: true
+  formatOnWrite: false
+statusLine:
+  preset: compact
+tools:
+  approvalMode: yolo
+theme:
+  dark: dark-nord-enhanced
+  light: light-tokyo-night
+read:
+  defaultLimit: 300
+startup:
+  setupWizard: false
+mcp:
+  discoveryMode: true
